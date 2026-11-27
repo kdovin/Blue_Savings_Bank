@@ -1,5 +1,4 @@
 import streamlit as st
-import plotly.graph_objects as go
 from core.data import COMPANY_INFO, find_logo_path
 
 
@@ -9,10 +8,9 @@ from core.data import COMPANY_INFO, find_logo_path
 def inject_global_css():
     st.markdown("""
     <style>
-        /* 페이지 여백 최적화 (P1 1920x1080 한 화면 수납 지원) */
         .block-container {
-            padding-top: 1.35rem !important;
-            padding-bottom: 1.5rem !important;
+            padding-top: 1.5rem !important;
+            padding-bottom: 2rem !important;
             padding-left: 2.2rem !important;
             padding-right: 2.2rem !important;
             max-width: 100% !important;
@@ -25,34 +23,102 @@ def inject_global_css():
         .page-subtitle {
             color: #64748B;
             font-size: 14px;
-            margin-bottom: 0.85rem;
+            margin-bottom: 1rem;
         }
 
-        /* 사이드바 P0 기업 소개 박스 */
-        .sidebar-brand-box {
-            background-color: #F8FAFC;
-            border: 1px solid #E2E8F0;
-            border-left: 4px solid #005BAC;
-            border-radius: 8px;
-            padding: 12px 14px;
+        /* P0: 통합 현황 최상단 메인 기업 소개 히어로 섹션 */
+        .company-hero-card {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F0F7FF 100%);
+            border: 1px solid #CBD5E1;
+            border-left: 6px solid #005BAC;
+            border-radius: 14px;
+            padding: 26px 30px;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+            margin-bottom: 8px;
+        }
+        .company-hero-badges {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .hero-pill-primary {
+            background-color: #005BAC;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+        .hero-pill-sub {
+            background-color: #E2E8F0;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+        .company-hero-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #002B5B;
+            letter-spacing: -0.6px;
             margin-bottom: 10px;
         }
-        .sidebar-brand-title {
-            font-size: 17px;
+        .company-hero-desc {
+            font-size: 16.5px;
+            font-weight: 500;
+            line-height: 1.65;
+            color: #1E293B;
+        }
+        .company-logo-fallback {
+            background-color: #003366;
+            color: #FFFFFF;
+            border-radius: 12px;
+            padding: 28px 16px;
+            text-align: center;
+            font-size: 20px;
             font-weight: 800;
-            color: #003366;
-            margin-bottom: 2px;
+            letter-spacing: -0.3px;
         }
-        .sidebar-brand-sub {
+
+        /* 기업 소개와 통합 현황 사이의 확실한 구분선 */
+        .hero-section-divider {
+            border: none;
+            border-top: 2px solid #CBD5E1;
+            margin: 26px 0 28px 0;
+        }
+
+        /* 사이드바 하단 챗봇 검색 틀 */
+        .sidebar-chat-box {
+            background-color: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 12px 12px 10px 12px;
+            margin-top: 8px;
+        }
+        .sidebar-chat-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #0F172A;
+            margin-bottom: 4px;
+        }
+        .sidebar-chat-desc {
             font-size: 11.5px;
-            font-weight: 600;
-            color: #005BAC;
-            margin-bottom: 6px;
+            line-height: 1.45;
+            color: #64748B;
+            margin-bottom: 8px;
         }
-        .sidebar-brand-desc {
-            font-size: 12px;
-            line-height: 1.5;
-            color: #475569;
+        .sidebar-chat-bubble {
+            background-color: #EFF6FF;
+            border: 1px solid #BFDBFE;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 11.5px;
+            line-height: 1.45;
+            color: #1E3A8A;
+            margin-bottom: 8px;
         }
 
         /* 상태 배지 (위험 / 주의 / 양호) */
@@ -84,13 +150,14 @@ def inject_global_css():
             margin-left: 6px;
         }
 
-        /* P1 KPI 카드 */
+        /* P1 KPI 카드 (미니 그래프 제거 후 깔끔한 닫힌 카드) */
         .kpi-card {
             background-color: #FFFFFF;
             border: 1px solid #E2E8F0;
             border-radius: 10px;
-            padding: 12px 14px 4px 14px;
+            padding: 15px 16px;
             box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+            margin-bottom: 14px;
         }
         .kpi-card-title {
             font-size: 13px;
@@ -98,14 +165,14 @@ def inject_global_css():
             color: #475569;
             display: flex;
             align-items: center;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
         .kpi-card-val {
             font-size: 26px;
             font-weight: 800;
             color: #0F172A;
-            line-height: 1.15;
-            margin-bottom: 6px;
+            line-height: 1.2;
+            margin-bottom: 8px;
         }
         .kpi-delta-pos {
             display: inline-block;
@@ -223,24 +290,75 @@ def inject_global_css():
 
 
 # ---------------------------------------------------------
-# 2. P0: 사이드바 제목 및 기업 소개 렌더링
+# 2. P0: 통합 현황 최상단 메인 기업 소개 히어로 배너 + 구분선
 # ---------------------------------------------------------
-def render_sidebar_p0():
+def render_hero_company_intro():
     logo_path = find_logo_path()
-    with st.sidebar:
+
+    st.markdown('<div class="company-hero-card">', unsafe_allow_html=True)
+    col_logo, col_info = st.columns([1.0, 3.2], vertical_alignment="center")
+
+    with col_logo:
         if logo_path:
             st.image(logo_path, use_container_width=True)
+        else:
+            st.markdown(
+                f'<div class="company-logo-fallback">🏦 {COMPANY_INFO["name"]}</div>',
+                unsafe_allow_html=True,
+            )
+
+    with col_info:
         st.markdown(f"""
-        <div class="sidebar-brand-box">
-            <div class="sidebar-brand-title">🏦 {COMPANY_INFO['name']}</div>
-            <div class="sidebar-brand-sub">{COMPANY_INFO['ticker']} · {COMPANY_INFO['badge']}</div>
-            <div class="sidebar-brand-desc">{COMPANY_INFO['summary']}</div>
+        <div class="company-hero-badges">
+            <span class="hero-pill-primary">{COMPANY_INFO['badge']}</span>
+            <span class="hero-pill-sub">{COMPANY_INFO['ticker']}</span>
+            <span class="hero-pill-sub">{COMPANY_INFO['base_date']}</span>
+        </div>
+        <div class="company-hero-title">{COMPANY_INFO['name']} 재무·자본 건전성 진단</div>
+        <div class="company-hero-desc">{COMPANY_INFO['summary']}</div>
+        """, unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<hr class="hero-section-divider">', unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------
+# 3. 사이드바 하단: 챗봇 검색 기능 틀 (추후 로직 연결용)
+# ---------------------------------------------------------
+def render_sidebar_chatbot_placeholder():
+    with st.sidebar:
+        st.divider()
+        st.markdown("""
+        <div class="sidebar-chat-box">
+            <div class="sidebar-chat-title">💬 지표 · 용어 검색 챗봇</div>
+            <div class="sidebar-chat-desc">BIS비율, RWA, 고정이하여신 등 대시보드 용어나 수치를 검색할 수 있는 영역입니다.</div>
         </div>
         """, unsafe_allow_html=True)
 
+        if "sidebar_chat_history" not in st.session_state:
+            st.session_state.sidebar_chat_history = []
+
+        with st.form("sidebar_chat_form", clear_on_submit=True):
+            user_q = st.text_input(
+                "챗봇 검색어",
+                placeholder="예: 고정이하여신비율 뜻이 뭐야?",
+                label_visibility="collapsed",
+            )
+            submitted = st.form_submit_button("검색", use_container_width=True)
+
+        if submitted and user_q.strip():
+            st.session_state.sidebar_chat_history.append(user_q.strip())
+
+        if st.session_state.sidebar_chat_history:
+            last_q = st.session_state.sidebar_chat_history[-1]
+            st.markdown(
+                f'<div class="sidebar-chat-bubble"><b>Q. {last_q}</b><br>🛠️ 챗봇 답변 엔진 연결 예정입니다. (검색어 수신 완료)</div>',
+                unsafe_allow_html=True,
+            )
+
 
 # ---------------------------------------------------------
-# 3. 공통 UI 헬퍼 컴포넌트
+# 4. 공통 UI 헬퍼 컴포넌트
 # ---------------------------------------------------------
 def render_page_header(title: str, subtitle: str):
     st.markdown(f"## {title}")
@@ -251,7 +369,7 @@ def render_insight_banner(text: str):
     st.markdown(f'<div class="insight-banner">💡 {text}</div>', unsafe_allow_html=True)
 
 
-def render_kpi_spark_card(card_dict: dict):
+def render_kpi_card(card_dict: dict):
     badge_html = ""
     if card_dict.get("badge") == "위험":
         badge_html = '<span class="badge-danger">위험</span>'
@@ -262,8 +380,6 @@ def render_kpi_spark_card(card_dict: dict):
 
     delta_cls = "kpi-delta-pos" if card_dict["delta_type"] == "pos" else "kpi-delta-neg"
     arrow = "↑" if card_dict["delta"].startswith("+") else "↓"
-    line_color = "#16A34A" if card_dict["delta_type"] == "pos" else "#DC2626"
-    fill_color = "rgba(22, 163, 74, 0.08)" if card_dict["delta_type"] == "pos" else "rgba(220, 38, 38, 0.08)"
 
     st.markdown(f"""
     <div class="kpi-card">
@@ -272,26 +388,6 @@ def render_kpi_spark_card(card_dict: dict):
         <div class="{delta_cls}">{arrow} {card_dict['delta']}</div>
     </div>
     """, unsafe_allow_html=True)
-
-    y_vals = card_dict["spark"]
-    fig = go.Figure(go.Scatter(
-        x=list(range(len(y_vals))),
-        y=y_vals,
-        mode="lines",
-        line=dict(color=line_color, width=2),
-        fill="tozeroy",
-        fillcolor=fill_color,
-        hoverinfo="skip",
-    ))
-    fig.update_layout(
-        height=46,
-        margin=dict(l=0, r=0, t=2, b=0),
-        xaxis=dict(visible=False),
-        yaxis=dict(visible=False, range=[min(y_vals) * 0.9, max(y_vals) * 1.05]),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-    )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
 
 def render_alert_panel(alerts: list):

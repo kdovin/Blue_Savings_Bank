@@ -1,5 +1,5 @@
 import streamlit as st
-from core.ui import inject_global_css, render_sidebar_p0
+from core.ui import inject_global_css, render_sidebar_chatbot_placeholder
 
 st.set_page_config(
     page_title="푸른저축은행 자본 건전성 대시보드",
@@ -9,7 +9,6 @@ st.set_page_config(
 )
 
 inject_global_css()
-render_sidebar_p0()
 
 pages = [
     st.Page("views/p1_overview.py", title="통합 현황", icon="📊", default=True, url_path="overview"),
@@ -20,4 +19,5 @@ pages = [
 ]
 
 pg = st.navigation(pages)
+render_sidebar_chatbot_placeholder()
 pg.run()

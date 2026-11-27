@@ -3,26 +3,31 @@ import pandas as pd
 from core.data import P1_KPI_CARDS, ALERT_SIGNALS, HISTORICAL_SHOCK_TABLE, ISSUE_TIMELINE
 from core.model import get_excel_stress_series, BASE_STATE
 from core.ui import (
+    render_hero_company_intro,
     render_page_header,
-    render_kpi_spark_card,
+    render_kpi_card,
     render_alert_panel,
     render_timeline_panel,
 )
 
 
 def show():
+    # 0. 최상단 메인 기업 소개 + 구분선
+    render_hero_company_intro()
+
+    # 1. 스크롤 후 시작되는 통합 현황 헤더
     render_page_header(
         "통합 현황",
         "2026.06 기준 핵심 지표와 경보 신호, 위기 시 자본 완충력을 한눈에 확인합니다."
     )
 
-    # 1. 상단 KPI 카드 6개 가로 1줄 배치
+    # 2. 상단 KPI 카드 6개 가로 1줄 배치 (미니 그래프 제거)
     kpi_cols = st.columns(len(P1_KPI_CARDS))
     for col, card in zip(kpi_cols, P1_KPI_CARDS):
         with col:
-            render_kpi_spark_card(card)
+            render_kpi_card(card)
 
-    # 2. 하단 3단 패널 (경보 신호 | 위기 시 자본 완충력 | 주요 이슈 타임라인)
+    # 3. 하단 3단 패널 (경보 신호 | 위기 시 자본 완충력 | 주요 이슈 타임라인)
     col_alert, col_buffer, col_timeline = st.columns([1.15, 1.0, 1.15])
 
     with col_alert:
